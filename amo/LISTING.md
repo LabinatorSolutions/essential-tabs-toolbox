@@ -10,7 +10,7 @@ Paste-ready text for each AMO field is in this folder. Upload the zip from `web-
 | Description | `description.txt` (AMO's HTML subset, same style as the other Labinator listings) |
 | Platform | Firefox (desktop) only — not Firefox for Android |
 | Categories | Tabs |
-| Tags | Pick from AMO's list; `tabs`/`tab manager`-style tags if offered, plus `youtube` and `productivity` if offered |
+| Tags | `youtube`, `container` (AMO's fixed list has no tab-management tag) |
 | Homepage | `https://labinator.com/` |
 | Support site | `https://github.com/LabinatorSolutions/essential-tabs-toolbox` |
 | License | GNU Affero General Public License v3.0 (the same choice as the other Labinator listings) |
