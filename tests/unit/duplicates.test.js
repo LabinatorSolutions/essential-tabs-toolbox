@@ -73,3 +73,11 @@ test('olderDuplicatesToClose matches tracker-only and YouTube timestamp differen
   const s = t(9, 'https://shop.com/p?id=1&utm_source=mail');
   expect(olderDuplicatesToClose(s, [t(2, 'https://shop.com/p?gclid=x&id=1'), s])).toEqual([2]);
 });
+
+test('C1: the tab the user is looking at (active in its window) is never closed', () => {
+  expect(isProtected(t(1, 'https://a.com', { active: true }))).toBe(true);
+  const n = t(9, 'https://a.com/article#comments');
+  expect(olderDuplicatesToClose(n, [t(1, 'https://a.com/article', { active: true }), n])).toEqual(
+    [],
+  );
+});

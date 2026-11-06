@@ -147,16 +147,18 @@ export function compareUrls(a, b) {
   return ka < kb ? -1 : ka > kb ? 1 : 0;
 }
 
-const BARE_HOST = /^[a-z0-9-]+(\.[a-z0-9-]+)+(:\d+)?(\/\S*)?$/i;
+// A bare host must end in a real-looking top-level label (letters, or punycode), so prose such as
+// "e.g." or "1.5" never becomes a link. IP addresses need an explicit scheme.
+const BARE_HOST = /^([a-z0-9-]+\.)+([a-z]{2,63}|xn--[a-z0-9-]{1,59})(:\d+)?([/?#]\S*)?$/i;
 const HAS_SCHEME = /^[a-z][a-z0-9+.-]*:/i;
 
 /** Strips punctuation that prose wraps around links, keeping a closing bracket the URL opened. */
 function unwrap(token) {
-  let s = token.replace(/^[(<["']+/, '');
+  let s = token.replace(/^[(<["'“‘«]+/, '');
   const pairs = { ')': '(', ']': '[' };
   for (;;) {
     const last = s.at(-1);
-    if (!last || !`)]>"'.,;:`.includes(last)) break;
+    if (!last || !`)]>"'.,;:!…”’»`.includes(last)) break;
     const open = pairs[last];
     if (open && s.split(open).length - 1 >= s.split(last).length - 1) break; // balanced: part of the URL
     s = s.slice(0, -1);
@@ -174,7 +176,10 @@ export function parseLinks(text) {
   const rejected = [];
   const seen = new Set();
   for (const token of text.split(/\s+/).filter(Boolean)) {
-    const s = unwrap(token);
+    let s = unwrap(token);
+    // A link inside other text: Markdown "[label](https://…)" or "label:https://…".
+    const inner = s.search(/https?:\/\//i);
+    if (inner > 0) s = unwrap(s.slice(inner));
     const candidate = HAS_SCHEME.test(s) ? s : BARE_HOST.test(s) ? `https://${s}` : null;
     if (!candidate || !isWebUrl(candidate)) {
       rejected.push(token);
@@ -317,14 +322,20 @@ export function swapMoves(tabs) {
 }
 
 /**
- * An older copy that auto-close must leave open (spec §2.4 rule 3): pinned, playing audio, using
- * the camera, microphone or screen sharing, or inside a tab group.
- * @param {Tab} tab
+ * An older copy that auto-close must leave open (spec §2.4 rules 2–3): the active tab of its window
+ * (the one the user sees there), pinned, playing audio, using the camera, microphone or screen
+ * sharing, or inside a tab group.
  */
 export function isProtected(tab) {
   const s = tab.sharingState;
   return Boolean(
-    tab.pinned || tab.audible || s?.camera || s?.microphone || s?.screen || tab.groupId >= 0,
+    tab.active ||
+      tab.pinned ||
+      tab.audible ||
+      s?.camera ||
+      s?.microphone ||
+      s?.screen ||
+      tab.groupId >= 0,
   );
 }
 

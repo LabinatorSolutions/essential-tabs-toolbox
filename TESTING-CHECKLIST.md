@@ -19,13 +19,17 @@ This Firefox → Load Temporary Add-on.
       tab group** stays open.
 - [ ] A copy in another **container** and a copy in a **private window** stay open.
 - [ ] Clicking a link inside a tab, to a page open elsewhere, closes nothing.
+- [ ] Middle-clicking a link to the page you are reading (`#comments`, a share link, a YouTube timestamp) closes
+      nothing: the tab in front of you is never closed.
+- [ ] An older copy holding unsaved form text: note whether Firefox asks before it closes (it may not).
 - [ ] `Ctrl+Shift+T` (Reopen Closed Tab) on a page that is open again closes nothing.
 
 ## Popup
 
 - [ ] **Copy** puts the right URLs on the real clipboard, with tracking parameters removed.
-- [ ] **Sort A→Z** with real tab groups (including a collapsed group): groups stay in place, tabs inside are
-      sorted, pinned tabs don't move.
+- [ ] **Sort A→Z** with real tab groups (including a collapsed group) and a split view pair: groups stay in
+      place, tabs inside are sorted, pinned tabs don't move, the split view survives.
+- [ ] The popup stays quick in a real 300-tab window with favicons (automated test uses blank tabs).
 - [ ] Keyboard only: `Tab` reaches every control with a visible ultramarine focus ring; `Alt+1`–`Alt+4` switch
       filters; `Enter` on a row switches tabs; `Ctrl+Enter` opens pasted links.
 - [ ] Pasting into a container tab opens the links in that container.

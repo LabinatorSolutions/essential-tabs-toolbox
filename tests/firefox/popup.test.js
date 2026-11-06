@@ -121,3 +121,30 @@ test('P7: a 300-tab window renders within 150 ms', async () => {
   console.log(`P7 render: ${ms} ms`);
   expect(Number(ms)).toBeLessThan(150);
 });
+
+test('I4: keyboard focus on a row survives tab updates elsewhere', async () => {
+  await ff.send('browsingContext.reload', { context: popup, wait: 'complete' });
+  await ff.click(popup, '[data-filter="all"]');
+  await waitFor(async () => (await rows()) > 3, { label: 'rows' });
+  const focused = await js(
+    `(() => { const r = document.querySelectorAll('#list .row')[2]; r.focus(); return r.dataset.tabId; })()`,
+  );
+  // Mute a tab (not a listed property) and navigate another (a listed property).
+  await js(`browser.tabs.query({ currentWindow: true }).then(async (tabs) => {
+    const web = tabs.filter((t) => t.url.startsWith('http'));
+    await browser.tabs.update(web[0].id, { muted: true });
+    await browser.tabs.update(web[1].id, { url: web[1].url + '?moved' });
+    return 1;
+  })`);
+  await Bun.sleep(1500);
+  expect(await js(`document.activeElement?.dataset?.tabId ?? null`)).toBe(focused);
+});
+
+test('M4: a failed sort says so', async () => {
+  await js(`(() => { browser.tabs.move = () => Promise.reject(new Error('gone')); return 1; })()`);
+  await ff.click(popup, '#sort');
+  await waitFor(
+    async () => (await js(`document.querySelector('#toast').textContent`)) === 'Sort failed',
+    { label: 'sort failed toast' },
+  );
+});

@@ -129,7 +129,11 @@ async function render() {
   }
 
   for (const tab of state.shown) frag.append(tabRow(tab));
+  const focusedId = /** @type {HTMLElement | null} */ (document.activeElement)?.dataset?.tabId;
   list.replaceChildren(frag);
+  // Re-rendering replaces the rows; keep keyboard focus on the same tab.
+  if (focusedId)
+    /** @type {HTMLElement | null} */ (list.querySelector(`[data-tab-id="${focusedId}"]`))?.focus();
 
   for (const b of document.querySelectorAll('[data-filter]')) {
     b.setAttribute('aria-pressed', String(b.getAttribute('data-filter') === state.filter));
@@ -233,15 +237,28 @@ $('#back').addEventListener('click', () => {
 copyButton.addEventListener('click', () => copy(state.shown));
 
 $('#sort').addEventListener('click', async () => {
-  const win = await browser.windows.getCurrent();
-  await sortWindow(win.id);
+  try {
+    const win = await browser.windows.getCurrent();
+    await sortWindow(win.id);
+    toast('Sorted');
+  } catch {
+    toast('Sort failed');
+  }
   await render();
-  toast('Sorted');
 });
 
 const links = /** @type {HTMLTextAreaElement} */ ($('#links'));
+let opening = false;
 async function openPasted() {
-  const r = await openLinks(links.value);
+  // A double click or a held Ctrl+Enter must not open the same links twice.
+  if (opening) return;
+  opening = true;
+  let r;
+  try {
+    r = await openLinks(links.value);
+  } finally {
+    opening = false;
+  }
   const status = $('#paste-status');
   status.textContent = openStatus({
     opened: r.opened,
@@ -281,7 +298,7 @@ const rerender = () => {
   pending = setTimeout(render, 50);
 };
 browser.sessions.onChanged.addListener(rerender);
-for (const ev of ['onCreated', 'onRemoved', 'onUpdated', 'onMoved', 'onAttached', 'onDetached']) {
+for (const ev of ['onCreated', 'onRemoved', 'onMoved', 'onAttached', 'onDetached']) {
   browser.tabs[ev].addListener(rerender);
 }
 
@@ -290,5 +307,11 @@ const settings = await getSettings();
 state.filter = settings.lastFilter;
 state.windowId = (await browser.windows.getCurrent()).id;
 dupSwitch.setAttribute('aria-checked', String(settings.autoCloseDuplicates));
+// Only changes this popup shows, in this window: a loading tab or a title counter elsewhere must not
+// rebuild the list under the user's keyboard focus.
+browser.tabs.onUpdated.addListener(rerender, {
+  windowId: state.windowId,
+  properties: ['url', 'title', 'favIconUrl', 'pinned'],
+});
 await render();
 $('#links').focus();

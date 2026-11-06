@@ -66,3 +66,14 @@ test('Ctrl+Enter in the box opens like the Open button', async () => {
   expect((await tabsInWindow()).some(t => t.url === `${server.origin}/c`)).toBe(true);
   expect(await js(`document.querySelector('#links').value`)).toBe('');
 });
+
+test('I3: a double click on Open opens each link once', async () => {
+  const o = server.origin;
+  await setText([1, 2, 3, 4, 5].map(n => `${o}/dbl${n}`).join('\n'));
+  await js(
+    `(() => { const b = document.querySelector('#open'); b.click(); b.click(); return 1; })()`,
+  );
+  await Bun.sleep(1500);
+  const dbl = (await tabsInWindow()).filter(t => t.url.includes('/dbl'));
+  expect(dbl.length).toBe(5);
+});

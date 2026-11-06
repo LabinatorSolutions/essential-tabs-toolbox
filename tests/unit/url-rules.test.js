@@ -93,3 +93,30 @@ test('parseLinks keeps a closing bracket that belongs to the URL', () => {
     'https://en.wikipedia.org/wiki/Tab_(interface)',
   ]);
 });
+
+test('I1: prose words and numbers are not links', () => {
+  const r = parseLinks(
+    'e.g. i.e. 1.5 3.14 example.com shop.co.uk/a xn--bcher-kva.example 192.168.1.1',
+  );
+  expect(r.urls).toEqual([
+    'https://example.com/',
+    'https://shop.co.uk/a',
+    'https://xn--bcher-kva.example/',
+  ]);
+  expect(r.rejected).toEqual(['e.g.', 'i.e.', '1.5', '3.14', '192.168.1.1']);
+});
+
+test('I2: curly quotes, ellipsis, !, Markdown and label: prefixes are unwrapped', () => {
+  const r = parseLinks(
+    '“https://c.com/q” https://d.com/z… https://a.com/x! [Docs](https://e.com/x) see:https://f.com/ «https://g.com/»',
+  );
+  expect(r.urls).toEqual([
+    'https://c.com/q',
+    'https://d.com/z',
+    'https://a.com/x',
+    'https://e.com/x',
+    'https://f.com/',
+    'https://g.com/',
+  ]);
+  expect(r.rejected).toEqual([]);
+});
