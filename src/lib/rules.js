@@ -351,3 +351,25 @@ export function olderDuplicatesToClose(newTab, tabs) {
     )
     .map(t => t.id);
 }
+
+/**
+ * Recently closed entries (spec §2.6), newest first, with closed windows flattened into their tabs.
+ * A tab from a closed window may have no `sessionId` of its own; it is then reopened by URL.
+ * @param {browser.sessions.Session[]} sessions
+ * @returns {{ sessionId?: string, url: string, title: string, favIconUrl?: string }[]}
+ */
+export function flattenClosed(sessions) {
+  const out = [];
+  const add = t =>
+    out.push({
+      sessionId: t.sessionId,
+      url: t.url,
+      title: t.title || t.url,
+      favIconUrl: t.favIconUrl,
+    });
+  for (const s of sessions) {
+    if (s.tab) add(s.tab);
+    else if (s.window) for (const t of s.window.tabs ?? []) add(t);
+  }
+  return out;
+}

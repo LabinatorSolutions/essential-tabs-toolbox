@@ -1,5 +1,5 @@
 // Popup actions that call the browser. Decisions live in ../lib/rules.js.
-import { duplicateKey, parseLinks, swapMoves } from '../lib/rules.js';
+import { duplicateKey, flattenClosed, parseLinks, swapMoves } from '../lib/rules.js';
 
 /**
  * Sorts a window's non-pinned tabs by URL, inside each tab group (spec §2.5).
@@ -71,4 +71,24 @@ export async function openLinks(text) {
     }
   }
   return { opened, alreadyOpen, rejected: [...rejected, ...failed] };
+}
+
+/** Firefox's recently closed tabs (spec §2.6), newest first. */
+export async function recentlyClosed() {
+  return flattenClosed(await browser.sessions.getRecentlyClosed());
+}
+
+/**
+ * Reopens a recently closed entry: restored with its history and container when it has a session
+ * id, opened by URL otherwise. Resolves false if Firefox no longer has it.
+ * @param {{ sessionId?: string, url: string }} entry
+ */
+export async function restoreClosed(entry) {
+  try {
+    if (entry.sessionId) await browser.sessions.restore(entry.sessionId);
+    else await browser.tabs.create({ url: entry.url });
+    return true;
+  } catch {
+    return false;
+  }
 }

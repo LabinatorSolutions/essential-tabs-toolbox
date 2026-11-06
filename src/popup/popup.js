@@ -1,7 +1,7 @@
 // Toolbar popup (spec §2.2–2.5, §4). Rules live in ../lib/rules.js; browser calls in ./actions.js.
 import { copiedMessage, copyText, filterTabs, groupBySite, openStatus } from '../lib/rules.js';
 import { getSettings, setSetting } from '../lib/settings.js';
-import { focusTab, openLinks, sortWindow } from './actions.js';
+import { focusTab, openLinks, recentlyClosed, restoreClosed, sortWindow } from './actions.js';
 
 const $ = sel => /** @type {HTMLElement} */ (document.querySelector(sel));
 const list = /** @type {HTMLUListElement} */ ($('#list'));
@@ -17,6 +17,10 @@ const state = {
   /** @type {browser.tabs.Tab[]} tabs currently listed, for Copy */
   shown: [],
   windowId: browser.windows.WINDOW_ID_CURRENT,
+  /** True while the Recently closed view is open. */
+  closed: false,
+  /** @type {Map<string, { sessionId?: string, url: string }>} closed entries by row key */
+  closedEntries: new Map(),
 };
 
 let firstRender = true;
@@ -42,11 +46,12 @@ function favicon(tab) {
   return span;
 }
 
-function tabRow(tab) {
+function tabRow(tab, closedKey) {
   const li = document.createElement('li');
   li.className = 'row';
   li.tabIndex = 0;
-  li.dataset.tabId = String(tab.id);
+  if (closedKey === undefined) li.dataset.tabId = String(tab.id);
+  else li.dataset.sessionId = closedKey;
   li.setAttribute('role', 'button');
   const text = document.createElement('span');
   text.className = 'text';
@@ -79,7 +84,25 @@ function siteRow(key, label, count) {
   return li;
 }
 
+async function renderClosed() {
+  const entries = await recentlyClosed();
+  state.closedEntries = new Map(entries.map((e, i) => [e.sessionId ?? `url:${i}`, e]));
+  state.shown = /** @type {any} */ (entries);
+  const frag = document.createDocumentFragment();
+  for (const [key, e] of state.closedEntries) frag.append(tabRow(e, key));
+  list.replaceChildren(frag);
+  /** @type {HTMLElement} */ (document.querySelector('.filters')).hidden = true;
+  $('#crumb').hidden = false;
+  $('#crumb-label').textContent = 'Recently closed';
+  copyButton.hidden = entries.length === 0;
+  const empty = $('#empty');
+  empty.hidden = entries.length > 0;
+  empty.textContent = 'No recently closed tabs';
+}
+
 async function render() {
+  if (state.closed) return renderClosed();
+  /** @type {HTMLElement} */ (document.querySelector('.filters')).hidden = false;
   const tabs = await loadTabs();
   const frag = document.createDocumentFragment();
   let showCopy = true;
@@ -153,6 +176,12 @@ async function setFilter(filter) {
 }
 
 async function activate(row) {
+  if (row.dataset.sessionId !== undefined) {
+    const entry = state.closedEntries.get(row.dataset.sessionId);
+    if (entry && (await restoreClosed(entry))) window.close();
+    else row.remove();
+    return;
+  }
   const id = Number(row.dataset.tabId);
   if (await focusTab({ id })) {
     window.close();
@@ -190,8 +219,14 @@ list.addEventListener('keydown', e => {
   if (row && e.key === 'Enter') activate(row);
 });
 
+$('#closed').addEventListener('click', () => {
+  state.closed = true;
+  render();
+});
+
 $('#back').addEventListener('click', () => {
-  state.site = null;
+  if (state.closed) state.closed = false;
+  else state.site = null;
   render();
 });
 
@@ -245,6 +280,7 @@ const rerender = () => {
   clearTimeout(pending);
   pending = setTimeout(render, 50);
 };
+browser.sessions.onChanged.addListener(rerender);
 for (const ev of ['onCreated', 'onRemoved', 'onUpdated', 'onMoved', 'onAttached', 'onDetached']) {
   browser.tabs[ev].addListener(rerender);
 }
