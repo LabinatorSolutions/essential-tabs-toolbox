@@ -14,3 +14,17 @@ export async function sortWindow(windowId) {
     if (ungroup) await browser.tabs.ungroup(id);
   }
 }
+
+/**
+ * Switches to a tab and focuses its window. Resolves false if the tab no longer exists.
+ * @param {{ id: number, windowId?: number }} tab
+ */
+export async function focusTab(tab) {
+  try {
+    const t = await browser.tabs.update(tab.id, { active: true });
+    await browser.windows.update(t.windowId, { focused: true });
+    return true;
+  } catch {
+    return false;
+  }
+}

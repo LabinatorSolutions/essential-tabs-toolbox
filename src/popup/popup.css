@@ -1,0 +1,327 @@
+/* Labinator design tokens (labinator-website/DESIGN.md). Single light theme, square geometry. */
+:root {
+  --paper: #f7f5ef;
+  --paper-bright: #ffffff;
+  --paper-deep: #ebe7dc;
+  --ink: #141414;
+  --ink-soft: #262626;
+  --slate: #404040;
+  --primary: #2400ff;
+  --primary-text: #1e00d6;
+  --wash: #e5e2fc;
+  --hairline: #e3dfd6;
+  --hairline-strong: #847e71;
+  --on-ink: #faf8f4;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 13px / 1.35 var(--font);
+}
+
+body {
+  width: 360px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Header */
+.hd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--hairline);
+}
+.mark {
+  width: 16px;
+  height: 16px;
+  background: var(--primary);
+  flex: none;
+}
+.hd h1 {
+  flex: 1;
+  margin: 0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Buttons */
+.btn {
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  background: var(--ink);
+  color: var(--on-ink);
+  font: 600 12px / 1 var(--font);
+  padding: 7px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn:hover {
+  background: var(--ink-soft);
+  box-shadow: inset 0 -2px 0 var(--primary);
+}
+.btn-outline {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--hairline-strong);
+}
+.btn-outline:hover {
+  background: var(--paper-deep);
+}
+.btn-small {
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+/* Paste box */
+.paste {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--hairline);
+}
+.paste-row {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+.paste textarea {
+  flex: 1;
+  min-height: 36px;
+  max-height: 120px;
+  resize: vertical;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 2px;
+  background: var(--paper-bright);
+  color: var(--ink);
+  font: 12px / 1.4 var(--mono);
+  padding: 6px;
+}
+.paste-status {
+  margin: 6px 0 0;
+  color: var(--slate);
+  font-size: 12px;
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  margin: 8px 12px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 2px;
+}
+.filters button {
+  flex: 1;
+  border: 0;
+  border-right: 1px solid var(--hairline-strong);
+  background: transparent;
+  color: var(--ink);
+  font: 12px / 1 var(--font);
+  padding: 7px 0;
+  cursor: pointer;
+}
+.filters button:last-child {
+  border-right: 0;
+}
+.filters button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--on-ink);
+  font-weight: 600;
+}
+
+/* Crumb (inside a site, or Recently closed) */
+.crumb {
+  border-top: 1px solid var(--hairline);
+  background: var(--wash);
+}
+.back {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: 600 12px / 1 var(--font);
+  padding: 9px 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* List */
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 340px;
+  overflow-y: auto;
+  border-top: 1px solid var(--hairline);
+}
+.row,
+.site {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--hairline);
+}
+.row {
+  cursor: pointer;
+}
+.row:hover {
+  background: rgb(20 20 20 / 6%);
+}
+.fav {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  background: var(--paper-deep);
+}
+img.fav {
+  background: none;
+}
+.text {
+  flex: 1;
+  min-width: 0;
+}
+.text b,
+.text i {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.text b {
+  font-weight: 500;
+}
+.text i {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--slate);
+}
+.site {
+  background: var(--paper-bright);
+}
+.site-name {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: 600 13px / 1.3 var(--font);
+  text-align: left;
+  padding: 2px 0;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.site-name:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--primary);
+  text-decoration-thickness: 2px;
+}
+.count {
+  color: var(--slate);
+  font-size: 12px;
+  min-width: 24px;
+  text-align: right;
+}
+.empty {
+  margin: 0;
+  padding: 16px 12px;
+  color: var(--slate);
+}
+
+/* Footer */
+.ft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--hairline);
+  background: var(--paper-bright);
+}
+.switch {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: 12px / 1 var(--font);
+  text-align: left;
+  cursor: pointer;
+  padding: 4px 0;
+}
+.track {
+  width: 28px;
+  height: 16px;
+  flex: none;
+  border: 1px solid var(--hairline-strong);
+  background: var(--paper-deep);
+  position: relative;
+}
+.track::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  background: var(--slate);
+}
+.switch[aria-checked="true"] .track {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.switch[aria-checked="true"] .track::after {
+  left: 14px;
+  background: var(--paper-bright);
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 56px;
+  padding: 8px 10px;
+  background: var(--ink);
+  color: var(--on-ink);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Last in the file, so it beats the equally specific class rules above. */
+[hidden] {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .track::after {
+    transition: left 120ms ease;
+  }
+}

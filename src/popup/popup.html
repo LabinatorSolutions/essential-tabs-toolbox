@@ -3,8 +3,46 @@
 <head>
   <meta charset="utf-8">
   <title>Essential Tabs Toolbox</title>
+  <link rel="stylesheet" href="popup.css">
+  <script type="module" src="popup.js"></script>
 </head>
 <body>
-  <!-- Placeholder until Task 6 builds the popup. -->
+  <header class="hd">
+    <span class="mark" aria-hidden="true"></span>
+    <h1>Essential Tabs</h1>
+    <button id="sort" class="btn btn-outline" type="button">Sort A→Z</button>
+  </header>
+
+  <section id="paste" class="paste" aria-label="Open links">
+    <div class="paste-row">
+      <label class="sr-only" for="links">Links to open</label>
+      <textarea id="links" rows="2" placeholder="Paste links to open…" spellcheck="false"></textarea>
+      <button id="open" class="btn" type="button">Open</button>
+    </div>
+    <p id="paste-status" class="paste-status" role="status" hidden></p>
+  </section>
+
+  <nav class="filters" aria-label="Show">
+    <button type="button" data-filter="all" aria-pressed="true">All</button>
+    <button type="button" data-filter="pinned" aria-pressed="false">Pinned</button>
+    <button type="button" data-filter="notPinned" aria-pressed="false">Not pinned</button>
+    <button type="button" data-filter="bySite" aria-pressed="false">By site</button>
+  </nav>
+
+  <div id="crumb" class="crumb" hidden>
+    <button id="back" class="back" type="button">← <span id="crumb-label"></span></button>
+  </div>
+
+  <ul id="list" class="list" aria-label="Tabs"></ul>
+  <p id="empty" class="empty" hidden></p>
+
+  <footer class="ft">
+    <button id="dup-switch" class="switch" type="button" role="switch" aria-checked="false">
+      <span class="track" aria-hidden="true"></span>Close duplicates
+    </button>
+    <button id="copy" class="btn" type="button">Copy</button>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 </body>
 </html>

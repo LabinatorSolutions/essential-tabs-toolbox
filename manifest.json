@@ -23,7 +23,8 @@
       "16": "icon.svg",
       "32": "icon.svg",
       "48": "icon.svg"
-    }
+    },
+    "default_popup": "src/popup/popup.html"
   },
   "background": {
     "scripts": ["src/background.js"],

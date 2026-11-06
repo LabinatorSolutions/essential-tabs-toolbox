@@ -232,7 +232,7 @@ export function groupBySite(tabs) {
 
 /**
  * Clipboard text for a set of tabs: clean URLs (spec §3.3), one per line.
- * @param {{ url: string }[]} tabs
+ * @param {{ url?: string }[]} tabs
  */
 export function copyText(tabs) {
   return tabs.map(t => cleanUrl(t.url)).join('\n');
