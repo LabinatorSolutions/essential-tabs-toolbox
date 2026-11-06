@@ -188,3 +188,71 @@ export function parseLinks(text) {
   }
   return { urls, rejected };
 }
+
+/**
+ * The subset of `browser.tabs.Tab` the add-on reads.
+ * @typedef {{ id: number, index: number, url: string, title?: string, pinned?: boolean, groupId?: number,
+ *   favIconUrl?: string, incognito?: boolean, cookieStoreId?: string, audible?: boolean,
+ *   sharingState?: { camera?: boolean, microphone?: boolean, screen?: string | boolean } }} Tab
+ */
+
+/**
+ * @param {Tab[]} tabs
+ * @param {'all' | 'pinned' | 'notPinned'} filter
+ * @returns {Tab[]}
+ */
+export function filterTabs(tabs, filter) {
+  if (filter === 'pinned') return tabs.filter(t => t.pinned);
+  if (filter === 'notPinned') return tabs.filter(t => !t.pinned);
+  return tabs;
+}
+
+/**
+ * By site view (spec §2.3): one entry per site with 2 or more tabs, biggest first, then by name.
+ * Single-tab sites and non-web tabs go to `other`, in tab order.
+ * @param {Tab[]} tabs
+ * @returns {{ sites: { site: string, tabs: Tab[] }[], other: Tab[] }}
+ */
+export function groupBySite(tabs) {
+  /** @type {Map<string, Tab[]>} */
+  const bySite = new Map();
+  for (const tab of tabs) {
+    const site = siteKey(tab.url);
+    if (!site) continue;
+    if (!bySite.has(site)) bySite.set(site, []);
+    bySite.get(site).push(tab);
+  }
+  const sites = [...bySite]
+    .filter(([, list]) => list.length >= 2)
+    .map(([site, list]) => ({ site, tabs: list }))
+    .sort(
+      (a, b) => b.tabs.length - a.tabs.length || (a.site < b.site ? -1 : a.site > b.site ? 1 : 0),
+    );
+  const grouped = new Set(sites.flatMap(s => s.tabs));
+  return { sites, other: tabs.filter(t => !grouped.has(t)) };
+}
+
+/**
+ * Clipboard text for a set of tabs: clean URLs (spec §3.3), one per line.
+ * @param {{ url: string }[]} tabs
+ */
+export function copyText(tabs) {
+  return tabs.map(t => cleanUrl(t.url)).join('\n');
+}
+
+/** @param {number} n */
+export function copiedMessage(n) {
+  return `Copied ${n} ${n === 1 ? 'URL' : 'URLs'}`;
+}
+
+/**
+ * The status line under the paste box (spec §2.1).
+ * @param {{ opened: number, alreadyOpen: number, rejected: number }} r
+ */
+export function openStatus({ opened, alreadyOpen, rejected }) {
+  const parts = [];
+  if (opened) parts.push(`Opened ${opened}`);
+  if (alreadyOpen) parts.push(`${alreadyOpen} already open`);
+  if (rejected) parts.push(`${rejected} ${rejected === 1 ? 'not a link' : 'not links'}`);
+  return parts.length ? parts.join(' · ') : 'Nothing to open';
+}
