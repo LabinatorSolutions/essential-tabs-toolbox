@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "ETT platform probe",
+  "version": "1.0.0",
+  "permissions": ["tabs", "sessions", "cookies", "browsingData"],
+  "background": { "scripts": ["probe.js"] },
+  "browser_specific_settings": {
+    "gecko": { "id": "probe@labinator.test", "strict_min_version": "159.0" }
+  }
+}

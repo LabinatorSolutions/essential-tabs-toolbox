@@ -1,0 +1,25 @@
+{
+  "name": "essential-tabs-toolbox",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Firefox add-on: open pasted links, list and copy tabs (by site), sort by URL inside tab groups, close duplicates, restore recently closed tabs.",
+  "license": "AGPL-3.0-or-later",
+  "scripts": {
+    "lint": "biome check .",
+    "lint:md": "rumdl check .",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "bun test tests/unit",
+    "test:firefox": "bun test tests/firefox --timeout 120000",
+    "validate": "web-ext lint --self-hosted=false",
+    "test": "bun run lint && bun run lint:md && bun run typecheck && bun run test:unit && bun run validate && bun run test:firefox",
+    "build": "web-ext build --overwrite-dest"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.5",
+    "@types/firefox-webext-browser": "^143.0.1",
+    "rumdl": "^0.2.79",
+    "typescript": "^7.0.2",
+    "web-ext": "^10.8.0"
+  }
+}
