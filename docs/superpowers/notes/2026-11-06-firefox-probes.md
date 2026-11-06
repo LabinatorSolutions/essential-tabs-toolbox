@@ -49,3 +49,12 @@ automatable (temporary add-ons are removed at shutdown), so it stays a manual ch
 
 **Decision:** clearing history empties Recently closed, at least through the API. Firefox's own "Clear history"
 menu is verified by hand in `TESTING-CHECKLIST.md`.
+
+## Follow-up from the sort e2e test (Task 4)
+
+The sort e2e test showed one case the probe missed: an ungrouped tab moved **right** to the slot just after a
+group's last tab joined that group. Together with E3 the rule is: **a moved tab takes the group of its anchor,
+which is the tab it now sits before after a leftward move, or the tab it now sits after after a rightward move.**
+`swapMoves` flags such moves and `sortWindow` calls `tabs.ungroup` on the tab, which stays in place because it is
+at the group's edge. `tests/unit/sort.test.js` models this rule; `tests/firefox/sort.test.js` checks the real
+browser.

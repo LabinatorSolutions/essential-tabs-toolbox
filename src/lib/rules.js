@@ -256,3 +256,64 @@ export function openStatus({ opened, alreadyOpen, rejected }) {
   if (rejected) parts.push(`${rejected} ${rejected === 1 ? 'not a link' : 'not links'}`);
   return parts.length ? parts.join(' · ') : 'Nothing to open';
 }
+
+/**
+ * "Sort A→Z" target order (spec §2.5): non-pinned tabs only. Each tab group is sorted within the
+ * slots it already holds; ungrouped tabs are sorted and refilled into the ungrouped slots in order.
+ * Returns every non-pinned tab with its target index, ascending by index.
+ * @param {Tab[]} tabs
+ * @returns {{ id: number, index: number }[]}
+ */
+export function planSort(tabs) {
+  /** @type {Map<number, Tab[]>} */
+  const partitions = new Map();
+  for (const tab of [...tabs].sort((a, b) => a.index - b.index)) {
+    if (tab.pinned) continue;
+    const group = tab.groupId >= 0 ? tab.groupId : -1;
+    if (!partitions.has(group)) partitions.set(group, []);
+    partitions.get(group).push(tab);
+  }
+  const target = [];
+  for (const members of partitions.values()) {
+    const slots = members.map(t => t.index);
+    const sorted = [...members].sort((a, b) => compareUrls(a.url, b.url));
+    sorted.forEach((tab, i) => {
+      target.push({ id: tab.id, index: slots[i] });
+    });
+  }
+  return target.sort((a, b) => a.index - b.index);
+}
+
+/**
+ * The `tabs.move` calls that reach `planSort`'s order with every tab still in its own group.
+ *
+ * Firefox gives a moved tab the group of its anchor: the tab it now sits before when it moved left,
+ * or the tab it now sits after when it moved right (probe P1, case E3, and the sort e2e test). So:
+ * - tabs are swapped, never shifted: move A left onto B's slot, then B right onto A's old slot.
+ *   Every other tab ends where it started, and each move lands in a slot of the tab's own partition;
+ * - a move that leaves an ungrouped tab right after a group's last tab is flagged `ungroup`, and
+ *   the caller removes it from that group again.
+ * @param {Tab[]} tabs
+ * @returns {{ id: number, index: number, ungroup?: true }[]}
+ */
+export function swapMoves(tabs) {
+  const order = [...tabs].sort((a, b) => a.index - b.index).map(t => t.id);
+  const groupOf = new Map(tabs.map(t => [t.id, t.groupId >= 0 ? t.groupId : -1]));
+  const moves = [];
+  const move = (id, index) => {
+    const from = order.indexOf(id);
+    order.splice(from, 1);
+    order.splice(index, 0, id);
+    const anchor = index < from ? order[index + 1] : order[index - 1];
+    const joinsGroup = groupOf.get(id) === -1 && anchor !== undefined && groupOf.get(anchor) >= 0;
+    moves.push(joinsGroup ? { id, index, ungroup: /** @type {const} */ (true) } : { id, index });
+  };
+  for (const { id: want, index: slot } of planSort(tabs)) {
+    const current = order[slot];
+    if (current === want) continue;
+    const from = order.indexOf(want); // always > slot: every earlier slot is already final
+    move(want, slot);
+    move(current, from);
+  }
+  return moves;
+}
