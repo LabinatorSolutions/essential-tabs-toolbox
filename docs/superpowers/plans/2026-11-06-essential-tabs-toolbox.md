@@ -4,7 +4,7 @@
 > superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build the Essential Tabs Toolbox Firefox add-on (v1.0.0). It opens pasted links, lists and copies tabs
-(including copy-by-site), sorts by URL inside tab groups, and closes duplicates automatically (off by default).
+(including copy-by-site), sorts by URL inside tab groups, and closes duplicates automatically (off by default), and lists recently closed tabs for one-click restore.
 
 **Architecture:** Plain JavaScript ES modules with no build step:
 
@@ -31,13 +31,15 @@ any task. Section numbers below (§2.4 etc.) refer to it.
 - Permissions:
   - `tabs`, `storage`, `cookies`. The `cookies` permission is needed only for `tabs.create({ cookieStoreId })`; it
     shows no install warning.
-  - `sessions` only if Task 1's probe P3 selects it.
+  - `sessions`: always, for Recently closed (spec §2.6). It also provides the restored-tab marker if probe P3
+    passes. Install prompt line: "Access recently closed tabs".
   - No `host_permissions`, no content scripts.
 - Desktop only. Do not add `gecko_android`. When uploading to AMO, tick Firefox only.
 - Settings in `browser.storage.local`: `autoCloseDuplicates` default **`false`**; `lastFilter` default `"all"`.
 - Exact UI copy:
   - Filter labels: `All`, `Pinned`, `Not pinned`, `By site`. No counts on filter buttons.
-  - Buttons: `Open`, `Sort A→Z`, `Copy`. The switch label is `Close duplicates`.
+  - Buttons: `Open`, `Recently closed`, `Sort A→Z`, `Copy`. The switch label is `Close duplicates`.
+  - Empty recently-closed list: `No recently closed tabs`.
   - Placeholder: `Paste links to open…`.
   - The catch-all site row: `Other sites`.
   - Messages: `Copied 1 URL` / `Copied N URLs`; `Sorted`. The paste status format is in Task 3.
@@ -73,19 +75,19 @@ any task. Section numbers below (§2.4 etc.) refer to it.
 
 ```text
 manifest.json                    MV3 manifest (Task 1, extended in 5/6/8)
-icon.svg                         Labinator icon (Task 8)
+icon.svg                         Labinator icon (Task 9)
 src/lib/rules.js                 every pure decision (Tasks 2–5)
 src/lib/settings.js              storage defaults + get/set (Task 5)
 src/background.js                auto-close duplicates + badge (Task 5)
 src/popup/popup.html|.css|.js    popup UI (Tasks 6–7)
-src/popup/actions.js             browser-calling popup actions: openLinks, sortWindow, focusTab (Tasks 4, 6, 7)
+src/popup/actions.js             browser-calling popup actions: openLinks, sortWindow, focusTab, recentlyClosed, restoreClosed (Tasks 4, 6–8)
 tests/unit/*.test.js             bun unit tests for rules.js
 tests/firefox/harness.js         launch Firefox 159 + BiDi client + local HTTP fixture server (Task 1)
 tests/firefox/probes/            throwaway probe extension for platform facts (Task 1)
 tests/firefox/*.test.js          real-Firefox e2e tests
 docs/superpowers/notes/2026-11-06-firefox-probes.md   probe results + decisions (Task 1)
 package.json biome.json tsconfig.json web-ext-config.mjs .rumdl.toml .gitignore
-README.md CONTRIBUTING.md SECURITY.md TESTING-CHECKLIST.md CHANGELOG.md   (Task 8)
+README.md CONTRIBUTING.md SECURITY.md TESTING-CHECKLIST.md CHANGELOG.md   (Task 9)
 ```
 
 ---
@@ -170,20 +172,24 @@ gate below fails, stop and report the evidence to the owner before Task 2.
     - Log the same for a brand-new `tabs.create({ url: "page.html" })` tab.
     - Pass: `getTabValue` returns `true` for the restored tab no later than its first `onUpdated` with
       `status: "complete"`, and returns `undefined` for the new tab.
-- [ ] **Step 5: Run `bun run test:firefox`.** Expected: P1, P2 and P3 pass. On failure, read the logged results
-  before changing anything.
+  - **P4 — does clearing history empty Recently closed?** Close two `page.html` tabs and record
+    `sessions.getRecentlyClosed()`. Then call `browsingData.removeHistory({})` (probe-only `browsingData`
+    permission) and record it again.
+    - This is a fact to document, not a gate. `removeHistory` is the closest automatable stand-in for Firefox's
+      "Clear history"; Task 9's checklist also verifies the real menu.
+- [ ] **Step 5: Run `bun run test:firefox`.** Expected: P1, P2 and P3 pass, and P4 is recorded. On failure, read
+  the logged results before changing anything.
 - [ ] **Step 6: Record decisions in `docs/superpowers/notes/2026-11-06-firefox-probes.md`.**
   - Paste the raw results, then one decision line per probe:
     - P1 pass → Task 4 applies moves as planned. P1 fail → Task 4's apply step re-asserts membership (described
       there).
     - P2 pass → Tasks 5–7 drive the real popup by `script.evaluate`. P2 fail → those e2e steps become manual
       `TESTING-CHECKLIST.md` items.
-    - P3 pass → auto-close marks tabs with `sessions.setTabValue(tabId, "ett-seen", true)` and adds `sessions` to
-      the manifest. Update spec §6 permissions, and tell the owner the install prompt gains "Access recently closed
-      tabs".
+    - P3 pass → auto-close marks tabs with `sessions.setTabValue(tabId, "ett-seen", true)`.
     - P3 fail → **stop and report**. Auto-close needs a different restore signal, and that is an owner decision.
+    - P4 → one sentence for the README and spec §2.6 saying whether clearing history clears Recently closed.
   - Browser restart (session restore at startup) cannot be automated: temporary add-ons are removed at shutdown,
-    and release Firefox can't install unsigned add-ons permanently. It goes to `TESTING-CHECKLIST.md` in Task 8.
+    and release Firefox can't install unsigned add-ons permanently. It goes to `TESTING-CHECKLIST.md` in Task 9.
 - [ ] **Step 7: Commit** `chore: tooling, Firefox BiDi harness, platform probes` and push.
 
 ### Task 2: URL rules
@@ -373,8 +379,8 @@ test('parseLinks: bare domains get https, junk is rejected, wrapping punctuation
   - **Badge.** Add the closed count to an in-memory counter: `action.setBadgeText({ text: String(n) })` with
     background `#2400ff`. Reset to `''` 4000 ms after the last close.
   - **No focus changes** of any kind.
-  - Manifest: add `sessions` (per P3), `action: { default_title: "Essential Tabs Toolbox" }` and `icons` (the
-    placeholder `icon.svg` is replaced in Task 8).
+  - Manifest: add `sessions`, `action: { default_title: "Essential Tabs Toolbox" }` and `icons` (the
+    placeholder `icon.svg` is replaced in Task 9).
 - [ ] **Step 4: Write `tests/firefox/duplicates.test.js`.** Use the server pages. "Open" means BiDi
   `browsingContext.create {type:'tab'}` plus `navigate` with `wait:'complete'`. Wait about 1 s, then read
   `contexts()`. Turn the setting on through `browser.storage.local.set` in an extension page (P2) or, if P2 failed,
@@ -474,7 +480,42 @@ test('parseLinks: bare domains get https, junk is rejected, wrapping punctuation
 - [ ] **Step 4: Run `bun run test`.** Expected: all pass.
 - [ ] **Step 5: Commit** `feat: paste box opens links` and push.
 
-### Task 8: Icon, docs, release build
+### Task 8: Recently closed
+
+**Files:**
+
+- Modify: `src/popup/popup.html`, `src/popup/popup.js`, `src/popup/actions.js`, `src/lib/rules.js`
+- Create: `tests/unit/closed.test.js`, `tests/firefox/closed.test.js`
+
+**Interfaces:**
+
+- Consumes: `copyText`, `copiedMessage` (Task 3); the popup DOM contract (Task 6).
+- Produces:
+  - `flattenClosed(sessions: browser.sessions.Session[]): { sessionId: string, url: string, title: string,
+    favIconUrl?: string }[]` in `rules.js`. It flattens `session.tab` and every `session.window.tabs[]` in input
+    order (newest first), and keeps each tab's own `sessionId`.
+  - In `actions.js`: `recentlyClosed(): Promise<ReturnType<typeof flattenClosed>>` and
+    `restoreClosed(sessionId: string): Promise<boolean>`. `restoreClosed` resolves `false` if the entry is gone.
+- DOM: `#closed` (the header button), `#list .row[data-session-id]`, `#back`, and `#empty` reading
+  `No recently closed tabs`.
+- [ ] **Step 1: Write the failing unit test.** `flattenClosed` on `[{tab:{sessionId:'t1'}}, {window:{tabs:
+  [{sessionId:'w1a'},{sessionId:'w1b'}]}}, {tab:{sessionId:'t2'}}]` returns the session ids
+  `['t1','w1a','w1b','t2']`.
+- [ ] **Step 2: Write `tests/firefox/closed.test.js`.** Open server pages `/a` and `/b`, then close both with
+  BiDi. Open the popup page and click `#closed`. Assert:
+  - two rows, `/b` first;
+  - the filter row is hidden and `#back` is shown;
+  - clicking the `/a` row restores a tab whose URL is `/a`;
+  - `#copy` toasts `Copied 2 URLs` before the restore;
+  - before anything is closed (fresh profile), clicking `#closed` shows `#empty`.
+- [ ] **Step 3: Run both tests.** Expected: FAIL. Implement `flattenClosed`, the two actions and the view:
+  - `#closed` swaps the list.
+  - A row click calls `restoreClosed`, then `window.close()`. On `false`, remove the row.
+  - `#back` returns to the last filter.
+- [ ] **Step 4: Run `bun run test`.** Expected: all pass.
+- [ ] **Step 5: Commit** `feat: recently closed tabs` and push.
+
+### Task 9: Icon, docs, release build
 
 **Files:**
 
@@ -494,7 +535,8 @@ test('parseLinks: bare domains get https, junk is rejected, wrapping punctuation
   - container and private-window scope;
   - real clipboard contents after `Copy`;
   - the 16 px toolbar icon on light and dark themes;
-  - keyboard-only use of the popup.
+  - keyboard-only use of the popup;
+  - Recently closed after Firefox's own "Clear history" (History menu), compared with the P4 result.
 
   `SECURITY.md` states the Firefox 159 floor. `CHANGELOG.md` gets a `1.0.0` entry.
 - [ ] **Step 3: Run `bun run test && bun run build`.** Expected:

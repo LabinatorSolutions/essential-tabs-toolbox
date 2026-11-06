@@ -144,6 +144,26 @@ Success looks like this:
   in their segment, by their literal URL **[call]**.
 - After a sort, the popup shows `Sorted` briefly. No count, per the no-numbers rule **[call]**.
 
+### 2.6 Recently closed tabs **[owner, added after approval]**
+
+- **Why [owner]**: speed. Firefox's own list (History → Recently Closed Tabs, Firefox View) takes
+  several clicks through menus; the owner wants it in the same popup.
+- A **Recently closed** button in the popup header swaps the list for Firefox's recently closed
+  tabs, newest first **[call]**. A `#back` row returns to the normal list, and the filter row is
+  hidden while this view is open.
+- Source: `browser.sessions.getRecentlyClosed()`. This is Firefox's own closed-tabs list, not the
+  browsing history. It holds at most 25 entries (`sessions.MAX_SESSION_RESULTS`), and it is
+  whatever Firefox keeps: the add-on stores nothing itself. Entries for closed *windows* are
+  flattened into their tabs **[call]**.
+- Clicking a row restores it with `sessions.restore(sessionId)`, which brings back its back history
+  and container, the same as `Ctrl+Shift+T` **[call]**. The restored tab opens where Firefox puts
+  it, and the popup closes.
+- Footer **Copy** copies the URLs shown, like every other view **[call]**.
+- Clearing history: whether Firefox's "Clear history" empties this list is measured in the build's
+  first task (probe P4) and documented. The add-on adds no list of its own that could survive a
+  clear.
+- An empty list shows `No recently closed tabs` **[call]**.
+
 ## 3. Shared rules
 
 ### 3.1 One module for the rules
@@ -163,7 +183,7 @@ view]**:
 
 ```text
 ┌──────────────────────────────────────────┐
-│ ■ ESSENTIAL TABS               [Sort A→Z]│  header
+│ ■ ESSENTIAL TABS [Recently closed][Sort A→Z]│  header
 ├──────────────────────────────────────────┤
 │ [ Paste links to open…        ] [ Open ] │  paste box, always visible
 │ Opened 12 · 3 already open               │  status line (only after use)
@@ -217,6 +237,8 @@ By site:                                After clicking youtube.com:
 - An on-demand "close duplicates now" action **[owner]**.
 - Automatic sorting **[owner]**: tabs reordering in front of the user is messy. Sorting is on
   demand only.
+- A closed-tabs list of the add-on's own. Recently closed shows Firefox's list only, so clearing
+  Firefox data clears it too.
 - Listing, copying or sorting across all windows.
 - Closing or moving tabs from the list.
 - Copy formats other than one URL per line, such as Markdown or "title + URL".
@@ -253,6 +275,10 @@ By site:                                After clicking youtube.com:
 - **Permissions, minimum set**:
   - `tabs`: URLs and titles of every tab.
   - `storage`.
+  - `sessions`: Recently closed (§2.6), and the restored-tab marker for auto-close if probe P3
+    selects it. Install prompt line: "Access recently closed tabs".
+  - `cookies`: needed only to pass `cookieStoreId` to `tabs.create` (§2.1). No install warning, and
+    without host permissions it can read no cookies.
   - Badge text uses the `action` key, which needs no permission.
   - `groupId` and `cookieStoreId` are on `tabs.Tab` without extra permissions. Tab-group support
     exists since Firefox 138–139.
