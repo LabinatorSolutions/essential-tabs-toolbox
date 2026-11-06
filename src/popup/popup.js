@@ -1,7 +1,7 @@
 // Toolbar popup (spec §2.2–2.5, §4). Rules live in ../lib/rules.js; browser calls in ./actions.js.
-import { copiedMessage, copyText, filterTabs, groupBySite } from '../lib/rules.js';
+import { copiedMessage, copyText, filterTabs, groupBySite, openStatus } from '../lib/rules.js';
 import { getSettings, setSetting } from '../lib/settings.js';
-import { focusTab, sortWindow } from './actions.js';
+import { focusTab, openLinks, sortWindow } from './actions.js';
 
 const $ = sel => /** @type {HTMLElement} */ (document.querySelector(sel));
 const list = /** @type {HTMLUListElement} */ ($('#list'));
@@ -202,6 +202,27 @@ $('#sort').addEventListener('click', async () => {
   await sortWindow(win.id);
   await render();
   toast('Sorted');
+});
+
+const links = /** @type {HTMLTextAreaElement} */ ($('#links'));
+async function openPasted() {
+  const r = await openLinks(links.value);
+  const status = $('#paste-status');
+  status.textContent = openStatus({
+    opened: r.opened,
+    alreadyOpen: r.alreadyOpen,
+    rejected: r.rejected.length,
+  });
+  status.hidden = false;
+  // Only links that failed stay in the box, so they can be fixed.
+  links.value = r.rejected.join('\n');
+}
+$('#open').addEventListener('click', openPasted);
+links.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    openPasted();
+  }
 });
 
 const dupSwitch = $('#dup-switch');
