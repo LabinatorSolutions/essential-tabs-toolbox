@@ -13,7 +13,8 @@ A Firefox add-on by [Labinator](https://labinator.com/) for fast tab housekeepin
 - **Sort A→Z** sorts the window's non-pinned tabs by URL. Tab groups stay where they are; the tabs inside each group
   are sorted among themselves.
 - **Close duplicates** (off by default). When you open a page that is already open, the older copy closes and the
-  tab in front of you stays. Pinned, playing, camera/microphone/screen-sharing and grouped tabs are never closed.
+  tab in front of you stays. The tab you are looking at in any window, and pinned, playing,
+  camera/microphone/screen-sharing and grouped tabs, are never closed.
   YouTube videos match by video, whatever the timestamp or playlist.
 - **Recently closed:** Firefox's own recently closed tabs list, one click away. Click a tab to bring it back with
   its history. Clearing Firefox's history clears this list too; the add-on keeps no list of its own.

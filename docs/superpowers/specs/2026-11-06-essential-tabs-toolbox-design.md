@@ -100,6 +100,8 @@ Success looks like this:
      moved. If several older copies exist, all of them close, subject to rule 3.
   3. **Protected older tabs are never closed [call]**. When an older copy is protected, it stays
      and the new tab stays too:
+     - the active tab of its window, the one the user sees there **[final review]**: middle-clicking a link
+       to the page being read must not close it;
      - pinned tabs;
      - tabs playing audio;
      - tabs using the camera, microphone or screen sharing (the same guard as Lightweight Tabs
