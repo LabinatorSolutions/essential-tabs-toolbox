@@ -315,3 +315,39 @@ export function swapMoves(tabs) {
   }
   return moves;
 }
+
+/**
+ * An older copy that auto-close must leave open (spec §2.4 rule 3): pinned, playing audio, using
+ * the camera, microphone or screen sharing, or inside a tab group.
+ * @param {Tab} tab
+ */
+export function isProtected(tab) {
+  const s = tab.sharingState;
+  return Boolean(
+    tab.pinned || tab.audible || s?.camera || s?.microphone || s?.screen || tab.groupId >= 0,
+  );
+}
+
+/**
+ * The older copies to close when `newTab` has finished its first page load (spec §2.4). The new
+ * tab is kept. "Older" means a lower tab id, so two copies opened at the same moment never close
+ * each other. Private and normal tabs, and different containers, are never compared.
+ * @param {Tab} newTab
+ * @param {Tab[]} tabs
+ * @returns {number[]}
+ */
+export function olderDuplicatesToClose(newTab, tabs) {
+  const key = duplicateKey(newTab.url);
+  if (!key) return [];
+  const store = t => t.cookieStoreId ?? 'firefox-default';
+  return tabs
+    .filter(
+      t =>
+        t.id < newTab.id &&
+        Boolean(t.incognito) === Boolean(newTab.incognito) &&
+        store(t) === store(newTab) &&
+        duplicateKey(t.url) === key &&
+        !isProtected(t),
+    )
+    .map(t => t.id);
+}

@@ -9,7 +9,22 @@
     "url": "https://labinator.com/"
   },
   "homepage_url": "https://github.com/LabinatorSolutions/essential-tabs-toolbox",
+  "icons": {
+    "16": "icon.svg",
+    "32": "icon.svg",
+    "48": "icon.svg",
+    "96": "icon.svg",
+    "128": "icon.svg"
+  },
   "permissions": ["tabs", "storage", "cookies", "sessions"],
+  "action": {
+    "default_title": "Essential Tabs Toolbox",
+    "default_icon": {
+      "16": "icon.svg",
+      "32": "icon.svg",
+      "48": "icon.svg"
+    }
+  },
   "background": {
     "scripts": ["src/background.js"],
     "type": "module"
