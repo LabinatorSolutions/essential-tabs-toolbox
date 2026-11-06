@@ -190,10 +190,8 @@ export function parseLinks(text) {
 }
 
 /**
- * The subset of `browser.tabs.Tab` the add-on reads.
- * @typedef {{ id: number, index: number, url: string, title?: string, pinned?: boolean, groupId?: number,
- *   favIconUrl?: string, incognito?: boolean, cookieStoreId?: string, audible?: boolean,
- *   sharingState?: { camera?: boolean, microphone?: boolean, screen?: string | boolean } }} Tab
+ * Firefox's tab object. Only its type is used here (for checking); rules.js never calls `browser`.
+ * @typedef {browser.tabs.Tab} Tab
  */
 
 /**
