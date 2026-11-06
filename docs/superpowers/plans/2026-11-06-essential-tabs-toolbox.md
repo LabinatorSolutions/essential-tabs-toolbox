@@ -207,17 +207,41 @@ gate below fails, stop and report the evidence to the owner before Task 2.
   - `compareUrls(a: string, b: string): number`
   - `parseLinks(text: string): { urls: string[], rejected: string[] }`
   - `isWebUrl(url: string): boolean`: true for `http:` and `https:` only.
+  - `cleanUrl(url: string): string`: spec §3.3. Removes the tracking parameters (and `si` on YouTube hosts) and
+    keeps everything else, including the fragment. Non-web URLs are returned unchanged.
+  - `TRACKING_PARAMS: Set<string>`: the exact names from spec §3.3; `utm_*` is matched by prefix.
 
 - [ ] **Step 1: Write the failing tests.**
 
 ```js
 import { expect, test } from 'bun:test';
-import { compareUrls, duplicateKey, parseLinks, siteKey } from '../../src/lib/rules.js';
+import { cleanUrl, compareUrls, duplicateKey, parseLinks, siteKey } from '../../src/lib/rules.js';
+
+test('cleanUrl removes known trackers only, keeps meaningful params and fragment', () => {
+  expect(cleanUrl('https://shop.com/item/9?utm_source=x&utm_medium=y&color=red&gclid=1#reviews')).toBe('https://shop.com/item/9?color=red#reviews');
+  expect(cleanUrl('https://shop.com/p?fbclid=abc')).toBe('https://shop.com/p');
+  expect(cleanUrl('https://www.google.com/search?q=firefox&srsltid=z')).toBe('https://www.google.com/search?q=firefox');
+  expect(cleanUrl('https://youtu.be/ID1?si=share123&t=30')).toBe('https://youtu.be/ID1?t=30');
+  expect(cleanUrl('https://example.com/a?si=keep')).toBe('https://example.com/a?si=keep');
+  expect(cleanUrl('about:config')).toBe('about:config');
+});
+test('duplicateKey ignores trackers and parameter order, keeps other params', () => {
+  expect(duplicateKey('https://shop.com/p?id=1&utm_source=a')).toBe(duplicateKey('https://shop.com/p?gclid=z&id=1'));
+  expect(duplicateKey('https://a.com/x?b=2&a=1')).toBe(duplicateKey('https://a.com/x?a=1&b=2'));
+  expect(duplicateKey('https://a.com/item?id=1')).not.toBe(duplicateKey('https://a.com/item?id=2'));
+});
+test('duplicateKey compares YouTube videos by video id only', () => {
+  const k = duplicateKey('https://www.youtube.com/watch?v=ID1');
+  for (const u of ['https://youtube.com/watch?v=ID1&t=90s', 'https://m.youtube.com/watch?list=PL1&v=ID1&index=3', 'https://youtu.be/ID1?si=x&t=4'])
+    expect(duplicateKey(u)).toBe(k);
+  expect(duplicateKey('https://www.youtube.com/watch?v=ID2')).not.toBe(k);
+  expect(duplicateKey('https://www.youtube.com/@labinator')).not.toBe(duplicateKey('https://www.youtube.com/@other'));
+});
 
 test('duplicateKey drops fragment and one trailing slash, keeps query', () => {
   expect(duplicateKey('https://a.com/x/#top')).toBe(duplicateKey('https://a.com/x'));
   expect(duplicateKey('https://a.com/')).toBe(duplicateKey('https://a.com'));
-  expect(duplicateKey('https://a.com/watch?v=abc')).not.toBe(duplicateKey('https://a.com/watch?v=xyz'));
+  expect(duplicateKey('https://a.com/page?v=abc')).not.toBe(duplicateKey('https://a.com/page?v=xyz'));
   expect(duplicateKey('HTTPS://A.COM/x')).toBe(duplicateKey('https://a.com/x'));
 });
 test('duplicateKey is null for non-web urls', () => {
@@ -243,8 +267,13 @@ test('parseLinks: bare domains get https, junk is rejected, wrapping punctuation
 ```
 
 - [ ] **Step 2: Run `bun test tests/unit/url-rules.test.js`.** Expected: FAIL (module not found).
-- [ ] **Step 3: Implement the five functions in `src/lib/rules.js`.**
+- [ ] **Step 3: Implement the URL functions in `src/lib/rules.js`.**
   - Normalize URLs with the `URL` class.
+  - `duplicateKey(url)`:
+    - YouTube hosts (`youtube.com`, `www.`, `m.`) with path `/watch` and a `v` param → `youtube:video:<v>`;
+      `youtu.be/<id>` → the same key.
+    - Otherwise: `cleanUrl`, drop the fragment, drop one trailing `/` from a non-root path, sort the remaining
+      params by name, and lowercase the host (`URL` already does).
   - `parseLinks` splits on `/\s+/` and strips leading `([<"'` and trailing `)]>"'.,;:` from each token.
   - A token without a scheme becomes `https://` + token when it matches
     `/^[a-z0-9-]+(\.[a-z0-9-]+)+(:\d+)?(\/\S*)?$/i`.
@@ -263,7 +292,7 @@ test('parseLinks: bare domains get https, junk is rejected, wrapping punctuation
 
 **Interfaces:**
 
-- Consumes: `siteKey` (Task 2).
+- Consumes: `siteKey`, `cleanUrl` (Task 2).
 - Produces:
   - `filterTabs(tabs: Tab[], filter: 'all'|'pinned'|'notPinned'): Tab[]`
   - `groupBySite(tabs: Tab[]): { sites: { site: string, tabs: Tab[] }[], other: Tab[] }`
@@ -279,7 +308,8 @@ test('parseLinks: bare domains get https, junk is rejected, wrapping punctuation
     - `other` holds the mozilla tab and the `about:config` tab, in tab order.
     - A tie of 2 and 2 is ordered by name.
     - Pinned tabs are included.
-  - `copyText([a, b])` is `a.url + '\n' + b.url`, with no trailing newline.
+  - `copyText([a, b])` is `cleanUrl(a.url) + '\n' + cleanUrl(b.url)`, with no trailing newline (spec §2.2: every
+    copy is clean). Test it with one URL carrying `utm_source`.
   - `copiedMessage(1)` is `'Copied 1 URL'`; `copiedMessage(50)` is `'Copied 50 URLs'`.
   - `openStatus`:
     - `{12,3,1}` → `'Opened 12 · 3 already open · 1 not a link'`

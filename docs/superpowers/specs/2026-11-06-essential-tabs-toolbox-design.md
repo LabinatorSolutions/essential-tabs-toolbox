@@ -59,6 +59,8 @@ Success looks like this:
 - **Copy**:
   - One **Copy** button in the footer copies the URLs of whatever the current view shows, one URL
     per line **[call, accepted]**. In `All`, that includes pinned tabs.
+  - **Every copy is clean [owner]**: known tracking parameters (§3.3) are removed, and everything
+    else in the URL is kept. No setting.
   - The button label shows no number **[owner, by extension of the no-counts rule]**.
   - A confirmation names the count: `Copied 50 URLs` **[owner: "he is gonna know the number
     anyway"]**.
@@ -109,8 +111,12 @@ Success looks like this:
      The principle behind rules 2 and 3 **[owner]**: auto-close must never make anything jump in
      the user's face. When in doubt, it leaves both tabs open.
      A closed tab is recoverable with Firefox's Reopen Closed Tab (`Ctrl+Shift+T`).
-  4. **Duplicate key**: the full URL with the `#fragment` removed and one trailing `/` on the path
-     ignored. The query string counts (`?v=abc` ≠ `?v=xyz`). Only `http(s)` tabs take part.
+  4. **Duplicate key**: the clean URL (§3.3) with the `#fragment` removed, one trailing `/` on
+     the path ignored, and the remaining query parameters put in a fixed order. Other query
+     parameters count (`?id=1` ≠ `?id=2`) **[owner: ignoring the whole query would close tabs that
+     are different pages]**. **YouTube videos compare by video ID only [owner]**:
+     `youtube.com/watch?v=ID` with any timestamp, playlist or other parameter, and `youtu.be/ID`,
+     all count as the same video. Only `http(s)` tabs take part.
      `about:newtab`, `about:home` and `about:blank` are never duplicates.
   5. **Scope**: all windows. Private and normal tabs are never compared. Tabs in different
      containers (`cookieStoreId`) are never compared.
@@ -175,6 +181,14 @@ automated tests (§6).
 ### 3.2 Settings
 
 `browser.storage.local`: `autoCloseDuplicates` (default `false`) and `lastFilter` (default `All`).
+
+### 3.3 Clean URLs **[owner]**
+
+"Clean" means the URL with known tracking parameters removed: every `utm_*` parameter, plus
+`fbclid`, `gclid`, `gclsrc`, `dclid`, `gbraid`, `wbraid`, `msclkid`, `mc_cid`, `mc_eid`, `igshid`,
+`yclid`, `twclid`, `ttclid`, `li_fat_id`, `_ga`, `_gl`, `_hsenc`, `_hsmi`, `mkt_tok`, `srsltid`,
+and `si` on YouTube links. Everything else stays, because many sites put the page itself in the
+query (search `?q=`, filters, `?page=2`, forum `?t=`). Used by Copy and by the duplicate key.
 
 ## 4. Interface
 
@@ -242,6 +256,9 @@ By site:                                After clicking youtube.com:
 - Listing, copying or sorting across all windows.
 - Closing or moving tabs from the list.
 - Copy formats other than one URL per line, such as Markdown or "title + URL".
+- Rewriting URLs in the address bar **[owner: skipped]**. Stripping the whole query breaks search
+  pages, filters and logins, and any version needs access to all websites. Clean Copy plus
+  Firefox's own tracking protection cover the need.
 - A text filter or search. YouTube channel and home pages are copied together with the videos.
   Raised with the owner, not requested.
 - A "copy this tab group" action **[owner]**: Firefox's tab-group menu covers it.
