@@ -353,12 +353,18 @@ export function olderDuplicatesToClose(newTab, tabs) {
 }
 
 /**
+ * @typedef {{ sessionId?: string, url: string, title: string, favIconUrl?: string, cookieStoreId?: string,
+ *   incognito?: boolean }} ClosedEntry
+ */
+
+/**
  * Recently closed entries (spec §2.6), newest first, with closed windows flattened into their tabs.
- * A tab from a closed window may have no `sessionId` of its own; it is then reopened by URL.
+ * A tab from a closed window may have no `sessionId` of its own; see `reopenPlan`.
  * @param {browser.sessions.Session[]} sessions
- * @returns {{ sessionId?: string, url: string, title: string, favIconUrl?: string }[]}
+ * @returns {ClosedEntry[]}
  */
 export function flattenClosed(sessions) {
+  /** @type {ClosedEntry[]} */
   const out = [];
   const add = t =>
     out.push({
@@ -366,10 +372,29 @@ export function flattenClosed(sessions) {
       url: t.url,
       title: t.title || t.url,
       favIconUrl: t.favIconUrl,
+      cookieStoreId: t.cookieStoreId,
+      incognito: t.incognito,
     });
   for (const s of sessions) {
     if (s.tab) add(s.tab);
     else if (s.window) for (const t of s.window.tabs ?? []) add(t);
   }
   return out;
+}
+
+/**
+ * How to bring a closed entry back. Firefox restores entries that have a session id, with their
+ * history and container. Otherwise the link is reopened only if it is a web link, in its own
+ * container, and never for a private tab (that would reopen it outside private browsing).
+ * @param {{ sessionId?: string, url: string, cookieStoreId?: string, incognito?: boolean }} entry
+ * @returns {{ restore: string } | { open: { url: string, cookieStoreId?: string } } | null}
+ */
+export function reopenPlan(entry) {
+  if (entry.sessionId) return { restore: entry.sessionId };
+  if (entry.incognito || !isWebUrl(entry.url)) return null;
+  return {
+    open: entry.cookieStoreId
+      ? { url: entry.url, cookieStoreId: entry.cookieStoreId }
+      : { url: entry.url },
+  };
 }

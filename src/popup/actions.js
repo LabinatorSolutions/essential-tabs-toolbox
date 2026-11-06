@@ -1,5 +1,5 @@
 // Popup actions that call the browser. Decisions live in ../lib/rules.js.
-import { duplicateKey, flattenClosed, parseLinks, swapMoves } from '../lib/rules.js';
+import { duplicateKey, flattenClosed, parseLinks, reopenPlan, swapMoves } from '../lib/rules.js';
 
 /**
  * Sorts a window's non-pinned tabs by URL, inside each tab group (spec §2.5).
@@ -79,14 +79,16 @@ export async function recentlyClosed() {
 }
 
 /**
- * Reopens a recently closed entry: restored with its history and container when it has a session
- * id, opened by URL otherwise. Resolves false if Firefox no longer has it.
- * @param {{ sessionId?: string, url: string }} entry
+ * Reopens a recently closed entry as `reopenPlan` decides. Resolves false if Firefox no longer has
+ * it, or if it cannot be reopened safely (not a web link, or a private tab without a session id).
+ * @param {{ sessionId?: string, url: string, cookieStoreId?: string, incognito?: boolean }} entry
  */
 export async function restoreClosed(entry) {
+  const plan = reopenPlan(entry);
+  if (!plan) return false;
   try {
-    if (entry.sessionId) await browser.sessions.restore(entry.sessionId);
-    else await browser.tabs.create({ url: entry.url });
+    if ('restore' in plan) await browser.sessions.restore(plan.restore);
+    else await browser.tabs.create(plan.open);
     return true;
   } catch {
     return false;

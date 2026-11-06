@@ -165,9 +165,9 @@ Success looks like this:
   and container, the same as `Ctrl+Shift+T` **[call]**. The restored tab opens where Firefox puts
   it, and the popup closes.
 - Footer **Copy** copies the URLs shown, like every other view **[call]**.
-- Clearing history: whether Firefox's "Clear history" empties this list is measured in the build's
-  first task (probe P4) and documented. The add-on adds no list of its own that could survive a
-  clear.
+- Clearing history **[measured, probe P4]**: `browsingData.removeHistory` emptied the list (7 entries → 0).
+  Firefox's own "Clear recent history" menu is verified by hand in `TESTING-CHECKLIST.md`. The add-on adds no
+  list of its own that could survive a clear.
 - An empty list shows `No recently closed tabs` **[call]**.
 
 ## 3. Shared rules

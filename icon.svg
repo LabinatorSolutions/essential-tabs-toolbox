@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
   <title>Essential Tabs Toolbox</title>
   <rect width="128" height="128" fill="#2400ff"/>
+  <path d="M20 26h24v10h64v14H20zM20 58h24v10h48v14H20zM20 90h24v10h32v14H20z" fill="#ffffff"/>
 </svg>
