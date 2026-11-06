@@ -4,7 +4,8 @@
 > superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build the Essential Tabs Toolbox Firefox add-on (v1.0.0). It opens pasted links, lists and copies tabs
-(including copy-by-site), sorts by URL inside tab groups, and closes duplicates automatically (off by default), and lists recently closed tabs for one-click restore.
+(including copy-by-site), sorts by URL inside tab groups, closes duplicates automatically (off by default), and
+lists recently closed tabs for one-click restore.
 
 **Architecture:** Plain JavaScript ES modules with no build step:
 
