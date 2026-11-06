@@ -1,6 +1,6 @@
 # Essential Tabs Toolbox — Design
 
-Date: 2026-11-06. Status: draft for owner approval.
+Date: 2026-11-06. Status: approved by the owner, 2026-11-06.
 
 Labels: **[owner]** = decided by the owner in conversation. **[call]** = proposed by Claude, not
 objected to, open to change. Anything unlabeled follows from an [owner] decision.
@@ -84,7 +84,7 @@ Success looks like this:
 
 ### 2.4 Close duplicate tabs automatically **[owner]**
 
-- **On by default [owner]**, with one switch to turn it off. **There is no on-demand "close
+- **Off by default [owner, changed at approval]**, with one switch in the footer to turn it on. Someone who installs the add-on for paste and copy should not find tabs disappearing unannounced. **There is no on-demand "close
   duplicates now" action [owner]**, because Firefox's own tab context menu already has "Close
   Duplicate Tabs".
 - Rules **[call, all accepted by the owner as "All good!"]**:
@@ -153,7 +153,7 @@ automated tests (§6).
 
 ### 3.2 Settings
 
-`browser.storage.local`: `autoCloseDuplicates` (default `true`) and `lastFilter` (default `All`).
+`browser.storage.local`: `autoCloseDuplicates` (default `false`) and `lastFilter` (default `All`).
 
 ## 4. Interface
 
@@ -173,7 +173,7 @@ view]**:
 │   example.com/path…                      │  scrolling list
 │ ▪ …                                      │
 ├──────────────────────────────────────────┤
-│ (●) Close duplicates             [ Copy ] │  footer
+│ ( ) Close duplicates             [ Copy ] │  footer
 └──────────────────────────────────────────┘
 
 By site:                                After clicking youtube.com:
