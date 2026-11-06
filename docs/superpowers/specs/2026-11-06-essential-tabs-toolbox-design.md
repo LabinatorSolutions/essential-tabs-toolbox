@@ -278,7 +278,6 @@ By site:                                After clicking youtube.com:
 None remain. Settled:
 
 - **Older duplicate inside a tab group**: keep both open **[owner]** (§2.4 rule 3).
-
 - **Tab group copy**: not built **[owner]**. The owner's reason: Firefox's own tab-group context
   menu already covers it.
 - **Desktop only [owner]**. No Firefox for Android support.
@@ -287,5 +286,5 @@ None remain. Settled:
 
 - File layout, module names, and the internal event-handling structure.
 - The icon glyph, within the Labinator icon system.
-- The exact debounce timing and badge duration, within the stated ranges.
+- The exact badge duration, within the stated range.
 - How "newly opened" is tracked, provided the session-restore and reopen-closed-tab anti-goal holds.
