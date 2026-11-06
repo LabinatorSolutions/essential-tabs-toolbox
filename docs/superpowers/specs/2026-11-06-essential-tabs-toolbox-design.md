@@ -84,9 +84,10 @@ Success looks like this:
 
 ### 2.4 Close duplicate tabs automatically **[owner]**
 
-- **Off by default [owner, changed at approval]**, with one switch in the footer to turn it on. Someone who installs the add-on for paste and copy should not find tabs disappearing unannounced. **There is no on-demand "close
-  duplicates now" action [owner]**, because Firefox's own tab context menu already has "Close
-  Duplicate Tabs".
+- **Off by default [owner, changed at approval]**, with one switch in the footer to turn it on.
+  Someone who installs the add-on for paste and copy should not find tabs disappearing unannounced.
+  **There is no on-demand "close duplicates now" action [owner]**, because Firefox's own tab
+  context menu already has "Close Duplicate Tabs".
 - Rules **[call, all accepted by the owner as "All good!"]**:
   1. **Only newly opened tabs trigger a check.** A tab triggers once, when its first real page has
      loaded. That includes tabs opened from a link, a typed URL or a bookmark in a fresh tab
