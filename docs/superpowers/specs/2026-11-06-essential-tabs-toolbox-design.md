@@ -160,7 +160,7 @@ automated tests (§6).
 Toolbar popup, about 340 px wide. Layout **[owner picked the always-visible paste box + By site
 view]**:
 
-```
+```text
 ┌──────────────────────────────────────────┐
 │ ■ ESSENTIAL TABS               [Sort A→Z]│  header
 ├──────────────────────────────────────────┤
