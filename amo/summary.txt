@@ -1,0 +1,1 @@
+Paste a list of links to open them all, copy every tab from one website in one click, sort tabs A→Z inside tab groups, bring back recently closed tabs, and optionally close duplicates. 100% free and open-source.

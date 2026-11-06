@@ -1,0 +1,17 @@
+No build step: the package is the plain JavaScript source in the repository (https://github.com/LabinatorSolutions/essential-tabs-toolbox). No minified or generated code, no remote code, no network requests.
+
+Permissions:
+- tabs: list the window's tabs (addresses and titles) in the popup, copy them, sort them, and detect duplicates.
+- sessions: show Firefox's recently closed tabs (sessions.getRecentlyClosed / sessions.restore), and mark tabs with sessions.setTabValue so tabs restored by Firefox are never treated as newly opened by the optional duplicate closer.
+- storage: two settings (duplicate closer on/off, last filter).
+- cookies: only to pass cookieStoreId to tabs.create, so pasted links open in the current tab's container. There are no host permissions, so no cookie can be read.
+
+How to test:
+1. Open a few tabs, including several from one site, and click the toolbar icon.
+2. Press "By site", then Copy on a site row: its links are on the clipboard.
+3. Paste a few links (one already open) into the box and press Open: the status line reports what opened and what was skipped.
+4. Press Sort A→Z; with a tab group present, the group stays in place and its tabs are sorted inside it.
+5. Close a tab, then press "Recently closed" and click it to restore it.
+6. Turn on "Close duplicates" in the footer, then open a page that is already open in a background tab: the older copy closes.
+
+Automated tests (unit and real-Firefox via WebDriver BiDi) are in the repository under tests/.

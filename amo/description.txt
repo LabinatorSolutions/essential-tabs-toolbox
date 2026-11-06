@@ -1,0 +1,48 @@
+A Firefox extension for fast tab housekeeping, all from one toolbar popup: open a pasted list of links, see and copy your tabs, copy <strong>every tab from one website</strong> in one click, sort your tabs A→Z, and bring back recently closed tabs.
+Perfect for 📚 research sessions, 🎵 long YouTube playlists, 🛒 comparison shopping, and anyone who keeps a hundred tabs open.
+
+💯 <strong>Free &amp; open-source</strong>
+🔓 Publicly available on GitHub:
+👉 <a href="https://github.com/LabinatorSolutions/essential-tabs-toolbox">https://github.com/LabinatorSolutions/essential-tabs-toolbox</a>
+Contributions, issues, and pull requests are always welcome!
+
+🎯 Why This Exists
+
+You have a window with 100 tabs, and 50 of them are YouTube videos you want to keep. Getting those 50 links out used to mean copying every address and filtering the list by hand.
+With <strong>By site</strong>, it is one click.
+
+✨ Key Features
+<ul><li>📋 <strong>Paste Links to Open</strong> — Paste any text that contains links. Links you already have open are skipped, bare domains like <code>example.com</code> work, and new tabs open in the background and load only when you click them, so pasting 50 links costs nothing up front.</li><li>🗂️ <strong>See &amp; Copy Your Tabs</strong> — List the tabs in your window, filtered by All, Pinned or Not pinned, and copy them as a plain list of links.</li><li>🌐 <strong>By Site</strong> — Every website with two or more tabs gets its own row and its own Copy button. Sites with a single tab are collected under Other sites.</li><li>🧹 <strong>Clean Copies</strong> — Tracking parameters (<code>utm_source</code>, <code>fbclid</code>, <code>gclid</code> and similar) are removed from every link you copy. Everything else in the link is kept.</li><li>🔤 <strong>Sort A→Z</strong> — Sorts your tabs by address. Pinned tabs and tab groups keep their place; the tabs inside each group are sorted among themselves.</li><li>♻️ <strong>Recently Closed</strong> — Firefox's own recently closed tabs, one click away, restored with their history.</li><li>👯 <strong>Close Duplicates</strong> (optional, off by default) — When you open a page that is already open, the older copy closes and the tab in front of you stays. YouTube videos match by video, whatever the timestamp or playlist.</li></ul>
+🛡️ Built to Never Lose the Wrong Tab
+
+When Close duplicates is on, it never closes:
+<ul><li>👀 The tab you are looking at, in any window</li><li>📌 Pinned tabs</li><li>🔊 Tabs playing sound</li><li>🎥 Tabs using your camera, microphone or screen sharing</li><li>🗂️ Tabs inside a tab group</li><li>🔐 Tabs in another container or in a private window</li></ul>
+Tabs brought back after a restart or with <code>Ctrl+Shift+T</code> are never treated as new.
+
+🎮 How to Use
+<ol><li><strong>Click the toolbar icon</strong></li><li><strong>Open links:</strong> paste them into the box and press Open (or <code>Ctrl+Enter</code>)</li><li><strong>Copy tabs:</strong> pick All, Pinned, Not pinned or By site, then press Copy</li><li><strong>Tidy up:</strong> press Sort A→Z, or Recently closed to bring a tab back</li></ol>
+⌨️ Keyboard: <code>Alt+1</code> to <code>Alt+4</code> switch views, and <code>Enter</code> on a tab switches to it.
+
+🔐 Privacy Policy (Short &amp; Clear)
+
+Your privacy is non-negotiable:
+<ul><li>✅ No data collection or transmission</li><li>✅ No tracking, analytics, or telemetry</li><li>✅ No external network requests</li><li>✅ All processing happens locally</li><li>✅ Fully open-source and auditable</li></ul>
+Permissions requested:
+<ul><li><code>tabs</code> — List your tabs and read their addresses and titles</li><li><code>sessions</code> — Show your recently closed tabs and recognize tabs Firefox restores</li><li><code>storage</code> — Remember your settings</li><li><code>cookies</code> — Open pasted links in the current tab's container. The add-on has no access to any website, so it cannot read any cookie.</li></ul>
+That's it.
+🚫 No access to the websites you visit
+🚫 No content scripts
+🚫 No background data collection
+
+🧾 Requirements
+<ul><li>🦊 <strong>Firefox 159 or newer</strong> (desktop). Older Firefox releases carry known, unpatched security vulnerabilities.</li></ul>
+👨🏻‍🔬 Credits
+
+Developed by the team behind <strong><a href="https://labinator.com/">Labinator</a></strong>.
+
+📞 Support &amp; Issues
+<ul><li>🐞 Bug reports &amp; feature requests:
+  👉 <a href="https://github.com/LabinatorSolutions/essential-tabs-toolbox/issues">https://github.com/LabinatorSolutions/essential-tabs-toolbox/issues</a></li></ul>
+📜 Disclaimer
+
+This extension is <strong>not affiliated with, endorsed by, or connected to</strong> Mozilla, YouTube, or Google.
