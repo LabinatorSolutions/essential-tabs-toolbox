@@ -34,13 +34,21 @@
     <button id="back" class="back" type="button">← <span id="crumb-label"></span></button>
   </div>
 
+  <nav id="scope" class="filters" aria-label="Look for duplicates in" hidden>
+    <button type="button" data-scope="window" aria-pressed="true">This window</button>
+    <button type="button" data-scope="all" aria-pressed="false">All windows</button>
+  </nav>
+
   <ul id="list" class="list" aria-label="Tabs"></ul>
   <p id="empty" class="empty" hidden></p>
+  <p id="dup-note" class="empty" hidden></p>
 
   <footer class="ft">
     <button id="dup-switch" class="switch" type="button" role="switch" aria-checked="false">
       <span class="track" aria-hidden="true"></span>Close duplicates
     </button>
+    <button id="dups" class="btn btn-outline" type="button">Duplicates</button>
+    <button id="dup-close" class="btn" type="button" hidden>Close</button>
     <button id="copy" class="btn" type="button">Copy</button>
   </footer>
 

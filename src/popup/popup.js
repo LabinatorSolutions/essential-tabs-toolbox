@@ -1,11 +1,23 @@
 // Toolbar popup (spec §2.2–2.5, §4). Rules live in ../lib/rules.js; browser calls in ./actions.js.
-import { copiedMessage, copyText, filterTabs, groupBySite, openStatus } from '../lib/rules.js';
+import {
+  closedMessage,
+  copiedMessage,
+  copyText,
+  duplicatesToClose,
+  filterTabs,
+  groupBySite,
+  keptNote,
+  openStatus,
+} from '../lib/rules.js';
 import { getSettings, setSetting } from '../lib/settings.js';
 import { focusTab, openLinks, recentlyClosed, restoreClosed, sortWindow } from './actions.js';
 
 const $ = sel => /** @type {HTMLElement} */ (document.querySelector(sel));
 const list = /** @type {HTMLUListElement} */ ($('#list'));
 const copyButton = /** @type {HTMLButtonElement} */ ($('#copy'));
+const filtersNav = $('.filters');
+const dupsButton = $('#dups');
+const dupClose = $('#dup-close');
 const FILTERS = ['all', 'pinned', 'notPinned', 'bySite'];
 
 /** What the popup shows. `site` is set while drilled into one site of the By site view. */
@@ -21,6 +33,10 @@ const state = {
   closed: false,
   /** @type {Map<string, { sessionId?: string, url: string }>} closed entries by row key */
   closedEntries: new Map(),
+  /** True while the Duplicates view is open. */
+  dups: false,
+  /** @type {'window' | 'all'} where the Duplicates view looks */
+  scope: 'window',
 };
 
 let firstRender = true;
@@ -84,6 +100,58 @@ function siteRow(key, label, count) {
   return li;
 }
 
+/**
+ * The copies the Duplicates view would close, in the chosen scope.
+ * @param {browser.tabs.Tab[]} [windowTabs] this window's tabs, when already loaded
+ */
+async function findDuplicates(windowTabs) {
+  if (state.scope === 'window') return duplicatesToClose(windowTabs ?? (await loadTabs()));
+  const tabs = await browser.tabs.query({});
+  return duplicatesToClose(tabs.sort((a, b) => a.windowId - b.windowId || a.index - b.index));
+}
+
+/** Shows the controls of one view and hides the others'. @param {'tabs' | 'closed' | 'dups'} view */
+function showView(view) {
+  filtersNav.hidden = view !== 'tabs';
+  $('#scope').hidden = view !== 'dups';
+  dupsButton.hidden = view === 'dups';
+  if (view !== 'dups') {
+    dupClose.hidden = true;
+    $('#dup-note').hidden = true;
+  }
+}
+
+/** Replaces the rows, keeping keyboard focus on the same tab. */
+function fillList(frag) {
+  const focusedId = /** @type {HTMLElement | null} */ (document.activeElement)?.dataset?.tabId;
+  list.replaceChildren(frag);
+  if (focusedId)
+    /** @type {HTMLElement | null} */ (list.querySelector(`[data-tab-id="${focusedId}"]`))?.focus();
+}
+
+/** @param {{ close: browser.tabs.Tab[], kept: number }} found */
+function renderDuplicates({ close, kept }) {
+  state.shown = close;
+  const frag = document.createDocumentFragment();
+  for (const tab of close) frag.append(tabRow(tab));
+  fillList(frag);
+  showView('dups');
+  for (const b of document.querySelectorAll('[data-scope]')) {
+    b.setAttribute('aria-pressed', String(b.getAttribute('data-scope') === state.scope));
+  }
+  $('#crumb').hidden = false;
+  $('#crumb-label').textContent = 'Duplicates';
+  copyButton.hidden = true;
+  dupClose.hidden = close.length === 0;
+  dupClose.textContent = `Close ${close.length}`;
+  const empty = $('#empty');
+  empty.hidden = close.length > 0;
+  empty.textContent = 'No duplicates to close';
+  const note = $('#dup-note');
+  note.hidden = kept === 0;
+  note.textContent = keptNote(kept);
+}
+
 async function renderClosed() {
   const entries = await recentlyClosed();
   state.closedEntries = new Map(entries.map((e, i) => [e.sessionId ?? `url:${i}`, e]));
@@ -91,7 +159,7 @@ async function renderClosed() {
   const frag = document.createDocumentFragment();
   for (const [key, e] of state.closedEntries) frag.append(tabRow(e, key));
   list.replaceChildren(frag);
-  /** @type {HTMLElement} */ (document.querySelector('.filters')).hidden = true;
+  showView('closed');
   $('#crumb').hidden = false;
   $('#crumb-label').textContent = 'Recently closed';
   copyButton.hidden = entries.length === 0;
@@ -102,8 +170,9 @@ async function renderClosed() {
 
 async function render() {
   if (state.closed) return renderClosed();
-  /** @type {HTMLElement} */ (document.querySelector('.filters')).hidden = false;
   const tabs = await loadTabs();
+  if (state.dups) return renderDuplicates(await findDuplicates(tabs));
+  showView('tabs');
   const frag = document.createDocumentFragment();
   let showCopy = true;
   let crumb = null;
@@ -129,11 +198,7 @@ async function render() {
   }
 
   for (const tab of state.shown) frag.append(tabRow(tab));
-  const focusedId = /** @type {HTMLElement | null} */ (document.activeElement)?.dataset?.tabId;
-  list.replaceChildren(frag);
-  // Re-rendering replaces the rows; keep keyboard focus on the same tab.
-  if (focusedId)
-    /** @type {HTMLElement | null} */ (list.querySelector(`[data-tab-id="${focusedId}"]`))?.focus();
+  fillList(frag);
 
   for (const b of document.querySelectorAll('[data-filter]')) {
     b.setAttribute('aria-pressed', String(b.getAttribute('data-filter') === state.filter));
@@ -149,6 +214,9 @@ async function render() {
     firstRender = false;
     document.body.dataset.renderedMs = String(Math.round(performance.now()));
   }
+  // After the list is up: counting must not delay it.
+  const n = (await findDuplicates(tabs)).close.length;
+  dupsButton.textContent = n ? `Duplicates ${n}` : 'Duplicates';
 }
 
 let toastTimer;
@@ -175,6 +243,7 @@ async function copy(tabs) {
 async function setFilter(filter) {
   state.filter = filter;
   state.site = null;
+  state.dups = false;
   await setSetting('lastFilter', filter);
   await render();
 }
@@ -195,7 +264,7 @@ async function activate(row) {
 }
 
 // Events
-document.querySelector('.filters').addEventListener('click', e => {
+filtersNav.addEventListener('click', e => {
   const b = /** @type {HTMLElement} */ (e.target).closest('[data-filter]');
   if (b) setFilter(/** @type {any} */ (b.getAttribute('data-filter')));
 });
@@ -225,13 +294,42 @@ list.addEventListener('keydown', e => {
 
 $('#closed').addEventListener('click', () => {
   state.closed = true;
+  state.dups = false;
   render();
 });
 
 $('#back').addEventListener('click', () => {
   if (state.closed) state.closed = false;
+  else if (state.dups) state.dups = false;
   else state.site = null;
   render();
+});
+
+dupsButton.addEventListener('click', () => {
+  state.dups = true;
+  state.closed = false;
+  render();
+});
+
+$('#scope').addEventListener('click', async e => {
+  const b = /** @type {HTMLElement} */ (e.target).closest('[data-scope]');
+  if (!b) return;
+  state.scope = /** @type {any} */ (b.getAttribute('data-scope'));
+  await setSetting('dupScope', state.scope);
+  await render();
+});
+
+dupClose.addEventListener('click', async () => {
+  // Close only tabs that are listed and are still duplicates now.
+  const listed = new Set(state.shown.map(t => t.id));
+  const ids = (await findDuplicates()).close.map(t => t.id).filter(id => listed.has(id));
+  try {
+    await browser.tabs.remove(ids);
+    toast(closedMessage(ids.length));
+  } catch {
+    toast('Close failed');
+  }
+  await render();
 });
 
 copyButton.addEventListener('click', () => copy(state.shown));
@@ -305,6 +403,7 @@ for (const ev of ['onCreated', 'onRemoved', 'onMoved', 'onAttached', 'onDetached
 // Start
 const settings = await getSettings();
 state.filter = settings.lastFilter;
+state.scope = settings.dupScope;
 state.windowId = (await browser.windows.getCurrent()).id;
 dupSwitch.setAttribute('aria-checked', String(settings.autoCloseDuplicates));
 // Only changes this popup shows, in this window: a loading tab or a title counter elsewhere must not

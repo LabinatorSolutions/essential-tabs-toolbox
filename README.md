@@ -16,6 +16,10 @@ A Firefox add-on by [Labinator](https://labinator.com/) for fast tab housekeepin
   tab in front of you stays. The tab you are looking at in any window, and pinned, playing,
   camera/microphone/screen-sharing and grouped tabs, are never closed.
   YouTube videos match by video, whatever the timestamp or playlist.
+- **Duplicates:** the footer button counts the duplicate tabs you already have. Open it to see the copies that
+  would close, in **This window** or **All windows**, and close them in one click. One copy of each page always
+  stays: a pinned, playing, sharing or grouped copy, or the tab in front of you, is kept first; otherwise the
+  oldest copy stays. Closed copies land in Recently closed.
 - **Recently closed:** Firefox's own recently closed tabs list, one click away. Click a tab to bring it back with
   its history. Clearing Firefox's history clears this list too; the add-on keeps no list of its own.
 
@@ -30,7 +34,7 @@ A Firefox add-on by [Labinator](https://labinator.com/) for fast tab housekeepin
 |---|---|
 | Access browser tabs (`tabs`) | List tabs and read their addresses and titles |
 | Access recently closed tabs (`sessions`) | The Recently closed list, and telling restored tabs apart from new ones |
-| `storage` | Remember the duplicate switch and the last filter |
+| `storage` | Remember the duplicate switch, the Duplicates scope and the last filter |
 | `cookies` | Open pasted links in the current tab's container. Without site access it cannot read any cookies |
 
 No site access, no content scripts, no data collection. Nothing leaves your browser.

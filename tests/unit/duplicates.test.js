@@ -1,5 +1,11 @@
 import { expect, test } from 'bun:test';
-import { isProtected, olderDuplicatesToClose } from '../../src/lib/rules.js';
+import {
+  closedMessage,
+  duplicatesToClose,
+  isProtected,
+  keptNote,
+  olderDuplicatesToClose,
+} from '../../src/lib/rules.js';
 
 const t = (id, url, extra = {}) => ({
   id,
@@ -80,4 +86,58 @@ test('C1: the tab the user is looking at (active in its window) is never closed'
   expect(olderDuplicatesToClose(n, [t(1, 'https://a.com/article', { active: true }), n])).toEqual(
     [],
   );
+});
+
+const ids = r => r.close.map(x => x.id);
+
+test('duplicatesToClose keeps the oldest copy when none is protected', () => {
+  const r = duplicatesToClose([
+    t(5, 'https://a.com/x'),
+    t(2, 'https://a.com/x/'),
+    t(7, 'https://a.com/x#top'),
+    t(3, 'https://a.com/y'),
+  ]);
+  expect(ids(r)).toEqual([5, 7]);
+  expect(r.kept).toBe(0);
+});
+
+test('duplicatesToClose keeps a protected copy and closes the loose ones', () => {
+  const r = duplicatesToClose([
+    t(1, 'https://www.youtube.com/watch?v=abc&t=10s'),
+    t(2, 'https://youtu.be/abc'),
+    t(3, 'https://www.youtube.com/watch?v=abc&list=PL1', { groupId: 4 }),
+  ]);
+  expect(ids(r)).toEqual([1, 2]);
+  expect(r.kept).toBe(0);
+});
+
+test('duplicatesToClose never closes protected copies and counts the extra ones', () => {
+  const r = duplicatesToClose([
+    t(1, 'https://a.com/x', { groupId: 4 }),
+    t(2, 'https://a.com/x', { pinned: true }),
+    t(3, 'https://a.com/x', { active: true }),
+    t(4, 'https://a.com/x'),
+  ]);
+  expect(ids(r)).toEqual([4]);
+  expect(r.kept).toBe(2);
+});
+
+test('duplicatesToClose never compares private with normal, containers, or non-web tabs', () => {
+  const r = duplicatesToClose([
+    t(1, 'https://a.com/x'),
+    t(2, 'https://a.com/x', { incognito: true }),
+    t(3, 'https://a.com/x', { cookieStoreId: 'firefox-container-1' }),
+    t(4, 'about:blank'),
+    t(5, 'about:blank'),
+  ]);
+  expect(ids(r)).toEqual([]);
+  expect(r.kept).toBe(0);
+});
+
+test('closedMessage and keptNote', () => {
+  expect(closedMessage(1)).toBe('Closed 1 duplicate');
+  expect(closedMessage(3)).toBe('Closed 3 duplicates');
+  expect(keptNote(0)).toBe('');
+  expect(keptNote(1)).toStartWith('1 more copy stays open');
+  expect(keptNote(2)).toStartWith('2 more copies stay open');
 });

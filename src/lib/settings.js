@@ -5,9 +5,11 @@ export const DEFAULTS = Object.freeze({
   autoCloseDuplicates: false,
   /** @type {'all' | 'pinned' | 'notPinned' | 'bySite'} */
   lastFilter: 'all',
+  /** Where the Duplicates view looks. @type {'window' | 'all'} */
+  dupScope: 'window',
 });
 
-/** @returns {Promise<{ autoCloseDuplicates: boolean, lastFilter: 'all' | 'pinned' | 'notPinned' | 'bySite' }>} */
+/** @returns {Promise<{ autoCloseDuplicates: boolean, lastFilter: 'all' | 'pinned' | 'notPinned' | 'bySite', dupScope: 'window' | 'all' }>} */
 export async function getSettings() {
   return { ...DEFAULTS, ...(await browser.storage.local.get({ ...DEFAULTS })) };
 }

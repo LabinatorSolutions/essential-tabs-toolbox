@@ -1,8 +1,8 @@
 # Testing Checklist
 
-`bun run test` covers the rules, the sort, auto-close, the popup, the paste box and Recently closed in a real
-headless Firefox. This checklist covers what automation cannot reach. Install the build from `about:debugging` →
-This Firefox → Load Temporary Add-on.
+`bun run test` covers the rules, the sort, auto-close, the Duplicates view, the popup, the paste box and Recently
+closed in a real headless Firefox. This checklist covers what automation cannot reach. Install the build from
+`about:debugging` → This Firefox → Load Temporary Add-on.
 
 ## Before each release
 
@@ -23,6 +23,14 @@ This Firefox → Load Temporary Add-on.
       nothing: the tab in front of you is never closed.
 - [ ] An older copy holding unsaved form text: note whether Firefox asks before it closes (it may not).
 - [ ] `Ctrl+Shift+T` (Reopen Closed Tab) on a page that is open again closes nothing.
+
+## Duplicates view
+
+- [ ] With one copy of a video loose and one **inside a tab group**, the loose copy is listed and closes; the
+      grouped copy stays.
+- [ ] Two copies that are both in tab groups: nothing is listed, and the note says one more copy stays open.
+- [ ] **All windows** with a real second window: copies in the other window are listed and close.
+- [ ] The closed copies appear in **Recently closed**.
 
 ## Popup
 

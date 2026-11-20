@@ -364,6 +364,51 @@ export function olderDuplicatesToClose(newTab, tabs) {
 }
 
 /**
+ * The Duplicates view: the copies to close on demand among `tabs` (one window's, or every
+ * window's). Tabs are the same page when they share a `duplicateKey`, the private/normal kind and
+ * the container. Of each set of copies, every protected one stays (see `isProtected`); when none
+ * is protected, the oldest (lowest tab id) stays.
+ * @param {Tab[]} tabs
+ * @returns {{ close: Tab[], kept: number }} the tabs to close, in the order given, and how many
+ *   extra copies stay open only because they are protected
+ */
+export function duplicatesToClose(tabs) {
+  /** @type {Map<string, Tab[]>} */
+  const sets = new Map();
+  for (const tab of tabs) {
+    const key = duplicateKey(tab.url);
+    if (!key) continue;
+    const full = `${Boolean(tab.incognito)} ${tab.cookieStoreId ?? 'firefox-default'} ${key}`;
+    if (!sets.has(full)) sets.set(full, []);
+    sets.get(full).push(tab);
+  }
+  const closing = new Set();
+  let kept = 0;
+  for (const copies of sets.values()) {
+    if (copies.length < 2) continue;
+    const safe = copies.filter(isProtected);
+    const keep = safe.length ? null : copies.reduce((a, b) => (b.id < a.id ? b : a));
+    if (safe.length) kept += safe.length - 1;
+    for (const t of copies) if (t !== keep && !safe.includes(t)) closing.add(t);
+  }
+  return { close: tabs.filter(t => closing.has(t)), kept };
+}
+
+/** @param {number} n */
+export function closedMessage(n) {
+  return `Closed ${n} ${n === 1 ? 'duplicate' : 'duplicates'}`;
+}
+
+/**
+ * The line under the Duplicates list for copies that stay open because they are protected.
+ * @param {number} n
+ */
+export function keptNote(n) {
+  if (!n) return '';
+  return `${n} more ${n === 1 ? 'copy stays' : 'copies stay'} open: pinned, playing, sharing, in a tab group, or the tab in front.`;
+}
+
+/**
  * @typedef {{ sessionId?: string, url: string, title: string, favIconUrl?: string, cookieStoreId?: string,
  *   incognito?: boolean }} ClosedEntry
  */
