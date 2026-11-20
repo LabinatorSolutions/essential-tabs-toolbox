@@ -2,7 +2,9 @@
 # https://github.com/rvben/rumdl
 
 [global]
-exclude = ["node_modules", "web-ext-artifacts", ".git", ".superpowers"]
+# amo/description.md is paste-ready AMO store text: AMO has no headings and keeps every newline,
+# so bold section titles and long lines are required there.
+exclude = ["node_modules", "web-ext-artifacts", ".git", ".superpowers", "amo/description.md"]
 
 [MD013]
 # Prose wraps at 120. Tables, code blocks and long URLs are exempt — reflowing
