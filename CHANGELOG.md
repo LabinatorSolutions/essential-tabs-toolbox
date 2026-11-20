@@ -4,13 +4,18 @@ All notable changes to Essential Tabs Toolbox are documented here.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.1.0] - 2026-11-20
 
 ### Added
 
 - Duplicates view: the footer button counts the duplicate tabs already open; the view lists the copies that would
   close, in this window or all windows, and closes them in one click. Protected copies stay; otherwise the oldest
   copy of each page stays.
+
+### Changed
+
+- The footer switch is now labeled "Auto-close duplicates" (was "Close duplicates"), to tell it apart from the
+  on-demand Duplicates view.
 
 ## [1.0.0] - 2026-11-06
 

@@ -1,4 +1,4 @@
-# AMO listing — Essential Tabs Toolbox 1.0.0
+# AMO listing — Essential Tabs Toolbox 1.1.0
 
 Paste-ready text for each AMO field is in this folder. Upload the zip from `web-ext-artifacts/`.
 
@@ -28,6 +28,7 @@ Paste-ready text for each AMO field is in this folder. Upload the zip from `web-
 | `screenshots/3-paste-links.png` | Paste a list of links. Links already open are skipped. |
 | `screenshots/4-recently-closed.png` | Recently closed tabs, one click to restore. |
 | `screenshots/5-sort.png` | Sort A→Z. Pinned tabs and tab groups keep their place. |
+| `screenshots/6-duplicates.png` | Duplicates: see the copies you already have open and close them in one click. |
 
-The screenshots show the real popup with demo tabs. They were generated in Firefox 159 by a script that is not part
-of the repository.
+The screenshots show the real popup with demo tabs. Regenerate them with `bun amo/make-screenshots.js` (headless
+Firefox; needs the Space Grotesk and Inter fonts installed).

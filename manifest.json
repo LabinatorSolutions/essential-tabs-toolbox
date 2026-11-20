@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Essential Tabs Toolbox",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Open a pasted list of links, list and copy your tabs (by site too), sort them by URL inside tab groups, close duplicates, and restore recently closed tabs.",
   "author": "Labinator",
   "developer": {
